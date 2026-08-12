@@ -1,47 +1,48 @@
 # Execution plan
 
-This file is intentionally a starting shell.
-
-Codex must replace/expand it after inspecting the repository and before substantial implementation.
-
 ## Goal
 
-Build the complete Kaloriteller MVP described by the repository specifications.
+Build and verify the complete local-first Kaloriteller MVP for installable Chrome/PWA and Android from one TypeScript/React codebase.
 
-## Current state
+## Inspected starting point
 
-Specification-only repository with the supplied wireframe.
+The repository initially contained only specifications, documentation, and `assets/wireframe.png`. `START_HERE.md`, every referenced source-of-truth document, `AGENTS.md`, and the wireframe were reviewed before implementation.
 
-## Milestones
+## Completed implementation slices
 
-Codex should refine these into concrete file-level tasks:
+- [x] Vite, React, strict TypeScript, ESLint, Vitest, Testing Library, and locked dependencies.
+- [x] Deterministic Norwegian-friendly parser, normalization, validation, exact definition matching, calculations, dates, and retention rules.
+- [x] Schema-versioned Dexie/IndexedDB persistence with runtime boundary validation.
+- [x] Transactional definition-plus-entry creation, day completion/retention, alias collision prevention, lazy active days, and immutable historical rate snapshots.
+- [x] Sparse mobile-first active day, unknown-definition dialog, entry editing/deletion, completion modal, midnight warning, history, day detail, and definition management.
+- [x] Local, testable PDF construction and browser/Android save adapters.
+- [x] Installable PWA manifest, generated icons, app-shell service worker, and offline verification.
+- [x] Capacitor Android project, Filesystem/Share integration, generated app icons, and platform sync.
+- [x] README and acceptance/verification records.
 
-- [ ] Scaffold web app and quality tooling
-- [ ] Implement deterministic domain parser/calculation
-- [ ] Implement versioned local persistence
-- [ ] Implement active-day flow
-- [ ] Implement unknown-definition flow
-- [ ] Implement custom/count units and aliases
-- [ ] Implement edit/delete and derived totals
-- [ ] Implement explicit day completion and midnight behavior
-- [ ] Implement seven-day retention
-- [ ] Implement history and completed-day detail
-- [ ] Implement definition management
-- [ ] Implement local PDF generation/export
-- [ ] Implement PWA/offline behavior
-- [ ] Add/configure Capacitor Android wrapper
-- [ ] Complete automated tests
-- [ ] Complete build/manual acceptance verification
-- [ ] Update README with exact run/build commands
+## Risks and outcomes
 
-## Risks / unknowns
-
-Codex should populate with concrete findings.
+- **Android build toolchain:** Android generation and sync passed. The debug build was attempted and stopped before compilation because this machine has no Java executable/`JAVA_HOME` and no Android SDK. No APK result is claimed.
+- **Browser save support:** File System Access API is used when available; standard Blob download is the fallback. Export cancellation is handled without data mutation.
+- **Alias collisions:** The entire normalized custom-label namespace is checked transactionally before save.
+- **Historical integrity:** Entries store rate and result snapshots. Definition edits never rewrite old entries silently.
+- **Offline:** The server was stopped after the installed/cached app had loaded; reload, retained history, IndexedDB definitions, and a new known entry all worked without the server.
 
 ## Progress
 
-Update continuously.
+- 2026-08-12: Source documents and wireframe reviewed; concrete plan prepared.
+- 2026-08-12: Domain/persistence slices completed and continuously tested.
+- 2026-08-12: UI, PDF, PWA, and Android slices completed.
+- 2026-08-12: Browser acceptance/offline pass completed; a completion-confirmation UX issue found during browser testing was replaced with an accessible app modal and retested.
 
-## Verification
+## Verification record
 
-Codex should record exact commands and manual checks actually performed.
+- `pnpm typecheck` — passed.
+- `pnpm lint` — passed.
+- `pnpm test` — 7 files, 31 tests passed.
+- `pnpm build` — passed; 23 PWA resources precached, manifest and service worker generated.
+- `pnpm cap:sync` — passed; Filesystem and Share plugins synchronized.
+- `android\\gradlew.bat assembleDebug` — attempted; blocked because `JAVA_HOME`/Java is unavailable.
+- Browser production-flow check — passed for definition creation/reuse, custom alias, derived totals, edit, completion cancel/confirm, history/detail, definition list, 390 px viewport, and zero console errors.
+- Offline check — passed after stopping the preview server: shell reload, retained history, and adding `2 flasker` from the local definition all worked.
+- Privacy scan — no application backend, analytics, food lookup, or food-data transmission code; Android manifest has no network/storage permission.

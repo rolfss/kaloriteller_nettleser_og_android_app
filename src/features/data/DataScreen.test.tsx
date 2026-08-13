@@ -9,6 +9,8 @@ describe('data and privacy UI', () => {
       <DataScreen
         storageMode="demo"
         busy={false}
+        installStatus="instructions"
+        onInstall={vi.fn(() => Promise.resolve())}
         onBack={vi.fn()}
         onBackup={vi.fn(() => Promise.resolve())}
         onCsv={vi.fn(() => Promise.resolve())}
@@ -20,6 +22,8 @@ describe('data and privacy UI', () => {
     expect(screen.getByRole('button', { name: 'Sikkerhetskopi (JSON)' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Regnearkdata (CSV)' })).toBeVisible()
     expect(screen.getAllByText(/sendes ikke til en server/)).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Last ned Android APK' })).toHaveAttribute('href', expect.stringContaining('kaloriteller-android-test.apk'))
+    expect(screen.getByText(/Installer fra Chrome/)).toBeVisible()
   })
 
   it('requires an in-app confirmation before clearing all data', async () => {
@@ -29,6 +33,8 @@ describe('data and privacy UI', () => {
       <DataScreen
         storageMode="persistent"
         busy={false}
+        installStatus="instructions"
+        onInstall={vi.fn(() => Promise.resolve())}
         onBack={vi.fn()}
         onBackup={vi.fn(() => Promise.resolve())}
         onCsv={vi.fn(() => Promise.resolve())}
@@ -40,5 +46,25 @@ describe('data and privacy UI', () => {
     expect(onClear).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Slett alle data' }))
     expect(onClear).toHaveBeenCalledOnce()
+  })
+
+  it('uses the browser installation prompt when it is available', async () => {
+    const user = userEvent.setup()
+    const onInstall = vi.fn(() => Promise.resolve())
+    render(
+      <DataScreen
+        storageMode="persistent"
+        busy={false}
+        installStatus="available"
+        onInstall={onInstall}
+        onBack={vi.fn()}
+        onBackup={vi.fn(() => Promise.resolve())}
+        onCsv={vi.fn(() => Promise.resolve())}
+        onImport={vi.fn(() => Promise.resolve())}
+        onClear={vi.fn(() => Promise.resolve())}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Installer appen' }))
+    expect(onInstall).toHaveBeenCalledOnce()
   })
 })

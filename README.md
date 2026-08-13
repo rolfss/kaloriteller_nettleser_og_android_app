@@ -5,6 +5,7 @@
 [![Quality and deploy](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/actions/workflows/quality-and-deploy.yml/badge.svg)](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/actions/workflows/quality-and-deploy.yml)
 [![PWA](https://img.shields.io/badge/PWA-offline_ready-5a8f7b)](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/)
 [![Android](https://img.shields.io/badge/Android-Capacitor-3DDC84?logo=android&logoColor=white)](./android)
+[![Download APK](https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/releases/download/v1.1.0/kaloriteller-android-test.apk)
 
 **A privacy-first calorie logger that learns only the calorie rules the user explicitly provides. No accounts, backend, analytics, external food database, or calorie guessing.**
 
@@ -96,6 +97,8 @@ The production build creates the web application, manifest, and service worker i
 Detailed verification evidence is recorded in [docs/ACCEPTANCE_RESULTS.md](./docs/ACCEPTANCE_RESULTS.md).
 
 ## Android
+
+**For evaluators:** [download the installable Android APK](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/releases/download/v1.1.0/kaloriteller-android-test.apk), or open the [live app](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/) in Chrome on Android and choose **Install app**. Both variants run locally, work offline, and store calorie data only on the device. The APK is a debug-signed test package, so Android may ask for permission to install from the browser.
 
 ```bash
 pnpm build

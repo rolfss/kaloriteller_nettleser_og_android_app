@@ -183,3 +183,17 @@
 **Why:** It provides an installable evaluation artifact without presenting a debug key as production signing or requiring the local workstation to have an Android SDK.
 
 **User-visible effect:** Recruiters may install a tagged test APK after accepting Android's external-source prompt. It is not represented as a Play Store release.
+
+## AD-014 — Two-path Android installation
+
+**Date:** 2026-08-13
+
+**Question:** How should a non-technical evaluator get a local Android app without cloning or building the repository?
+
+**Decision:** Put a visible Installer route in the application. Offer the browser's native PWA prompt when Chrome exposes it, retain explicit Chrome menu instructions as a fallback, and provide a direct link to the tagged recruiter APK.
+
+**Why:** PWA installation is the safest low-friction path and receives the deployed web version automatically. The APK provides a concrete locally installed package when evaluators prefer or require one.
+
+**Alternatives considered:** Require Android Studio; publish only build artifacts inside GitHub Actions; present only an APK; publish to Play Store.
+
+**User-visible effect:** An Android user can open the public site, tap Installer, and either add the offline app to the home screen or download the test APK directly. No project files, account, tokens, or build tools are required.

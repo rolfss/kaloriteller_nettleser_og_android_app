@@ -1,10 +1,13 @@
 import { useState, type ChangeEvent } from 'react'
 import { Modal } from '../../components/Modal'
 import type { StorageMode } from '../../persistence/runtime'
+import { ANDROID_APK_URL, ANDROID_RELEASE_URL, type InstallStatus } from '../../platform/installApp'
 
 interface DataScreenProps {
   storageMode: StorageMode
   busy: boolean
+  installStatus: InstallStatus
+  onInstall: () => Promise<void>
   onBack: () => void
   onBackup: () => Promise<void>
   onCsv: () => Promise<void>
@@ -18,7 +21,7 @@ interface PendingImport {
 }
 
 export function DataScreen({
-  storageMode, busy, onBack, onBackup, onCsv, onImport, onClear,
+  storageMode, busy, installStatus, onInstall, onBack, onBackup, onCsv, onImport, onClear,
 }: DataScreenProps) {
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
   const [confirmClear, setConfirmClear] = useState(false)
@@ -45,8 +48,38 @@ export function DataScreen({
     <main className="screen">
       <header className="page-header">
         <button type="button" className="back-button" onClick={onBack} aria-label="Tilbake til dagens registrering">←</button>
-        <div><p className="eyebrow">Lokalt og privat</p><h1>Data og personvern</h1></div>
+        <div><p className="eyebrow">Lokalt og privat</p><h1>Installer, data og personvern</h1></div>
       </header>
+
+      <section className="settings-section install-section" aria-labelledby="install-heading">
+        <p className="eyebrow">Android</p>
+        <h2 id="install-heading">Bruk Kaloriteller som en app</h2>
+        {installStatus === 'installed' ? (
+          <p className="install-status" role="status"><strong>Appen er installert.</strong> Den åpnes fra hjemmeskjermen og fungerer uten nett.</p>
+        ) : (
+          <>
+            <p>Velg den enkle Chrome-installasjonen, eller last ned Android-pakken direkte. Begge kjører lokalt og krever ingen konto.</p>
+            {installStatus === 'available' ? (
+              <button type="button" className="button" onClick={() => { void onInstall() }}>Installer appen</button>
+            ) : (
+              <div className="install-instructions">
+                <strong>Installer fra Chrome</strong>
+                <p>Åpne denne siden i Chrome på Android, trykk menyen <span aria-hidden="true">⋮</span>, og velg «Installer app» eller «Legg til på startskjermen».</p>
+              </div>
+            )}
+            <div className="install-download">
+              <a className="button button--secondary inline-action" href={ANDROID_APK_URL}>Last ned Android APK</a>
+              <p className="help-text">Direktepakken er en debug-signert testutgave. Android kan be deg tillate installasjon fra nettleseren.</p>
+              <a href={ANDROID_RELEASE_URL} target="_blank" rel="noreferrer">Versjon og utgivelsesdetaljer</a>
+            </div>
+          </>
+        )}
+        <ul className="plain-list install-benefits">
+          <li>Fungerer offline etter første åpning eller installasjon.</li>
+          <li>Matdata lagres bare lokalt på telefonen.</li>
+          <li>Ingen abonnement, tokens eller løpende brukskostnad.</li>
+        </ul>
+      </section>
 
       <section className="settings-section" aria-labelledby="storage-heading">
         <h2 id="storage-heading">Lagring</h2>

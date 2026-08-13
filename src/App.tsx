@@ -11,6 +11,7 @@ import { DayDetailScreen } from './features/history/DayDetailScreen'
 import { HistoryScreen } from './features/history/HistoryScreen'
 import { saveFile } from './platform/saveFile'
 import { savePdf } from './platform/savePdf'
+import { useAppInstall } from './platform/installApp'
 import { createCalorieRuntime, type CalorieRuntime } from './persistence/runtime'
 
 type View = { name: 'current' | 'history' | 'definitions' | 'data' } | { name: 'day'; dayId: string }
@@ -37,6 +38,7 @@ export default function App() {
   const [fatalError, setFatalError] = useState('')
   const [notice, setNotice] = useState('')
   const [undo, setUndo] = useState<UndoAction | null>(null)
+  const appInstall = useAppInstall()
 
   const refresh = useCallback(async () => {
     if (!runtime) return
@@ -279,6 +281,7 @@ export default function App() {
           onSelectEntry={(entry) => { setFormError(''); setEditing(entry) }}
           onHistory={() => { setFormError(''); setView({ name: 'history' }) }}
           onDefinitions={() => { setFormError(''); setView({ name: 'definitions' }) }}
+          onInstall={() => { setFormError(''); setView({ name: 'data' }) }}
           onData={() => { setFormError(''); setView({ name: 'data' }) }}
           onExportHistory={() => exportDays(snapshot.history, 'kaloriteller-7-dager.pdf')}
           onComplete={completeDay}
@@ -324,6 +327,13 @@ export default function App() {
         <DataScreen
           storageMode={runtime.storageMode}
           busy={busy}
+          installStatus={appInstall.status}
+          onInstall={async () => {
+            const result = await appInstall.requestInstall()
+            if (result === 'accepted') showNotice('Kaloriteller installeres på enheten.')
+            else if (result === 'dismissed') showNotice('Installasjonen ble avbrutt.')
+            else showNotice('Bruk Chrome-menyen for å installere appen.')
+          }}
           onBack={() => setView({ name: 'current' })}
           onBackup={exportBackup}
           onCsv={exportCsv}

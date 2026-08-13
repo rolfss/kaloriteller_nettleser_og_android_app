@@ -63,3 +63,4 @@ The repository initially contained only specifications, documentation, and `asse
 - [x] Data/privacy screen and example-driven first-use guidance.
 - [x] Automated coverage for memory/demo mode, backup boundaries, CSV, undo restore, and retention preview.
 - [x] GitHub-built debug-signed Android test APK attached to the clearly labeled `v1.1.0` prerelease.
+- [x] In-app Android installation route with native PWA prompt, manual Chrome fallback, and direct tagged APK download.

@@ -27,6 +27,7 @@ function props(overrides: Partial<ComponentProps<typeof CurrentDayScreen>> = {})
     onSelectEntry: vi.fn(),
     onHistory: vi.fn(),
     onDefinitions: vi.fn(),
+    onInstall: vi.fn(),
     onData: vi.fn(),
     onExportHistory: vi.fn(() => Promise.resolve()),
     onComplete: vi.fn(() => Promise.resolve()),
@@ -72,6 +73,14 @@ describe('current day UI', () => {
     render(<CurrentDayScreen {...props({ onDraftChange })} />)
     await user.click(screen.getByRole('button', { name: '1,5 dl melk' }))
     expect(onDraftChange).toHaveBeenCalledWith('1,5 dl melk')
+  })
+
+  it('makes the Android installation route visible from the main screen', async () => {
+    const user = userEvent.setup()
+    const onInstall = vi.fn()
+    render(<CurrentDayScreen {...props({ onInstall })} />)
+    await user.click(screen.getByRole('button', { name: 'Installer' }))
+    expect(onInstall).toHaveBeenCalledOnce()
   })
 
   it('warns which retained day will be removed and offers export first', async () => {

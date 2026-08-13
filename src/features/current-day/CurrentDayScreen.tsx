@@ -16,6 +16,7 @@ interface CurrentDayScreenProps {
   onSelectEntry: (entry: Entry) => void
   onHistory: () => void
   onDefinitions: () => void
+  onInstall: () => void
   onData: () => void
   onExportHistory: () => Promise<void>
   onComplete: () => Promise<void>
@@ -23,7 +24,7 @@ interface CurrentDayScreenProps {
 
 export function CurrentDayScreen({
   active, error, busy, draft, retentionDay, exporting, onAdd, onDraftChange,
-  onSelectEntry, onHistory, onDefinitions, onData, onExportHistory, onComplete,
+  onSelectEntry, onHistory, onDefinitions, onInstall, onData, onExportHistory, onComplete,
 }: CurrentDayScreenProps) {
   const [confirmCompletion, setConfirmCompletion] = useState(false)
   const logDate = active?.day.logDate ?? localDateString()
@@ -40,6 +41,7 @@ export function CurrentDayScreen({
         </div>
         <nav className="topbar__actions" aria-label="Hovednavigasjon">
           <button type="button" className="text-button" onClick={onDefinitions}>Definisjoner</button>
+          <button type="button" className="text-button" onClick={onInstall}>Installer</button>
           <button type="button" className="text-button" onClick={onData}>Data</button>
           <button type="button" className="button button--secondary button--compact" onClick={onHistory}>Historikk</button>
         </nav>

@@ -111,3 +111,19 @@
 **User-visible effect:** The Android app cannot transmit food data over the network and only opens a save/share destination after an explicit export action.
 
 **Reversibility:** Easy if a future, explicitly approved network feature changes the product constraints.
+
+## AD-008 — Recruiter-facing repository and live demo
+**Status:** accepted
+**Date:** 2026-08-13
+
+**Question:** How should the completed project be made immediately understandable and usable from GitHub?
+
+**Decision:** Move the application from its redundant nested directory to the repository root, make the README a concise technical case study, and publish every verified `main` build to GitHub Pages.
+
+**Why:** A root-level project structure is conventional and discoverable. A quality-gated live demo lets a reviewer evaluate the product without installing a toolchain while keeping the source, tests, and deployment evidence together.
+
+**Alternatives considered:** Keep the nested specification package; provide local run instructions only; deploy to an unrelated hosting provider.
+
+**User-visible effect:** The GitHub landing page now leads with a live demo, product screenshot, capabilities, architecture, verification status, and direct technical links.
+
+**Reversibility:** Easy; hosting is static and the deployment workflow can be removed without changing the application.

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { formatCalories, formatLogDate, isEarlierLocalDay, localDateString } from '../../domain/dates'
 import type { DaySummary, Entry } from '../../domain/models'
 import { EntryList } from '../../components/EntryList'
@@ -18,13 +18,8 @@ interface CurrentDayScreenProps {
 export function CurrentDayScreen({
   active, error, busy, onAdd, onSelectEntry, onHistory, onDefinitions, onComplete,
 }: CurrentDayScreenProps) {
-  const [rawText, setRawText] = useState('')
   const [confirmCompletion, setConfirmCompletion] = useState(false)
   const logDate = active?.day.logDate ?? localDateString()
-  const submit = async (event: FormEvent) => {
-    event.preventDefault()
-    if (await onAdd(rawText)) setRawText('')
-  }
 
   return (
     <main className="screen">
@@ -61,24 +56,12 @@ export function CurrentDayScreen({
         <EntryList entries={active?.entries ?? []} onSelect={onSelectEntry} emptyText="Dagen er tom. Legg til det første du spiste." />
       </section>
 
-      <form className="composer" onSubmit={(event) => { void submit(event) }}>
-        <label htmlFor="food-entry" className="sr-only">Hva spiste du?</label>
-        <div className="composer__row">
-          <input
-            id="food-entry"
-            value={rawText}
-            onChange={(event) => setRawText(event.target.value)}
-            placeholder="Hva spiste du?"
-            autoComplete="off"
-            aria-describedby={error ? 'composer-error' : undefined}
-          />
-          <button className="button composer__submit" type="submit" disabled={busy || !rawText.trim()} aria-label="Legg til innlegg">
-            {busy ? '…' : 'Legg til'}
-          </button>
-        </div>
-        {error && <p id="composer-error" className="form-error" role="alert">{error}</p>}
-        <p className="composer__hint">Eksempel: 15 g tran, 1,5 dl melk eller 2 kjeks</p>
-      </form>
+      <EntryComposer
+        resetKey={`${active?.day.id ?? 'empty'}-${active?.entries.length ?? 0}`}
+        error={error}
+        busy={busy}
+        onAdd={onAdd}
+      />
       {confirmCompletion && (
         <Modal title="Avslutte dagen?" onClose={() => setConfirmCompletion(false)} labelledBy="complete-day-title">
           <p>Alle innlegg beholdes, og dagen flyttes til historikken.</p>
@@ -94,5 +77,48 @@ export function CurrentDayScreen({
         </Modal>
       )}
     </main>
+  )
+}
+
+function EntryComposer({
+  error, busy, onAdd, resetKey,
+}: {
+  error: string
+  busy: boolean
+  onAdd: (rawText: string) => Promise<boolean>
+  resetKey: string
+}) {
+  const formRef = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    formRef.current?.reset()
+  }, [resetKey])
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const form = event.currentTarget
+    const entryValue = new FormData(form).get('entry')
+    const rawText = typeof entryValue === 'string' ? entryValue : ''
+    if (await onAdd(rawText)) form.reset()
+  }
+
+  return (
+    <form ref={formRef} className="composer" onSubmit={(event) => { void submit(event) }}>
+        <label htmlFor="food-entry" className="sr-only">Hva spiste du?</label>
+        <div className="composer__row">
+          <input
+            id="food-entry"
+            name="entry"
+            placeholder="Hva spiste du?"
+            autoComplete="off"
+            required
+            aria-describedby={error ? 'composer-error' : undefined}
+          />
+          <button className="button composer__submit" type="submit" disabled={busy} aria-label="Legg til innlegg">
+            {busy ? '…' : 'Legg til'}
+          </button>
+        </div>
+        {error && <p id="composer-error" className="form-error" role="alert">{error}</p>}
+        <p className="composer__hint">Eksempel: 15 g tran, 1,5 dl melk eller 2 kjeks</p>
+    </form>
   )
 }

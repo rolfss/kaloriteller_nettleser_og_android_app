@@ -39,10 +39,12 @@ The repository initially contained only specifications, documentation, and `asse
 
 - `pnpm typecheck` — passed.
 - `pnpm lint` — passed.
-- `pnpm test` — 7 files, 31 tests passed.
+- `pnpm test` — 7 files, 32 tests passed.
 - `pnpm build` — passed; 23 PWA resources precached, manifest and service worker generated.
 - `pnpm cap:sync` — passed; Filesystem and Share plugins synchronized.
 - `android\\gradlew.bat assembleDebug` — attempted; blocked because `JAVA_HOME`/Java is unavailable.
 - Browser production-flow check — passed for definition creation/reuse, custom alias, derived totals, edit, completion cancel/confirm, history/detail, definition list, 390 px viewport, and zero console errors.
 - Offline check — passed after stopping the preview server: shell reload, retained history, and adding `2 flasker` from the local definition all worked.
 - Privacy scan — no application backend, analytics, food lookup, or food-data transmission code; Android manifest has no network/storage permission.
+- GitHub Pages build — verified under `/kaloriteller_nettleser_og_android_app/` with correct manifest start URL/scope, working assets, and zero browser console errors.
+- 2026-08-13: Project moved to the repository root; recruiter-facing README, application preview, and quality-gated GitHub Pages deployment added.

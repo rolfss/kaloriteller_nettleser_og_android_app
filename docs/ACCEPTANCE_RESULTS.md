@@ -26,3 +26,4 @@ The source checklist is `ACCEPTANCE_TESTS.md`. Automated tests use fake IndexedD
 - Android launcher assets generated for all standard density buckets.
 - Android manifest requests no network or storage permission.
 - Android debug build was attempted but could not start: the machine has no Java executable/`JAVA_HOME` or Android SDK.
+- The GitHub Pages production build was loaded from its repository subpath with the expected PWA manifest scope and no browser console errors.

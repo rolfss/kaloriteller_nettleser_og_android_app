@@ -52,4 +52,22 @@ describe('current day UI', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Mengden må være')
     expect(container.querySelector('#food-entry')).toHaveAttribute('aria-describedby', 'composer-error')
   })
+
+  it('starts with an empty composer after the current-day snapshot changes', async () => {
+    const user = userEvent.setup()
+    const props = {
+      active: null,
+      error: '',
+      busy: false,
+      onAdd: vi.fn(() => Promise.resolve(false)),
+      onSelectEntry: vi.fn(),
+      onHistory: vi.fn(),
+      onDefinitions: vi.fn(),
+      onComplete: vi.fn(),
+    }
+    const { rerender } = render(<CurrentDayScreen {...props} />)
+    await user.type(screen.getByLabelText('Hva spiste du?'), '2 kjeks')
+    rerender(<CurrentDayScreen {...props} active={oldActive} />)
+    expect(screen.getByLabelText('Hva spiste du?')).toHaveValue('')
+  })
 })

@@ -2,7 +2,11 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
+const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'kaloriteller_nettleser_og_android_app'
+const siteBase = process.env.GITHUB_PAGES === 'true' ? `/${repositoryName}/` : '/'
+
 export default defineConfig({
+  base: siteBase,
   plugins: [
     react(),
     VitePWA({
@@ -15,8 +19,8 @@ export default defineConfig({
         theme_color: '#153f37',
         background_color: '#f6f4ee',
         display: 'standalone',
-        start_url: '/',
-        scope: '/',
+        start_url: siteBase,
+        scope: siteBase,
         lang: 'nb',
         categories: ['health', 'lifestyle'],
         icons: [

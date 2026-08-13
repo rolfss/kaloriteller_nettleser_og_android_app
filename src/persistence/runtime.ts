@@ -1,7 +1,7 @@
 import { CalorieService } from '../application/calorieService'
 import { CalorieDatabase } from './database'
 
-export type StorageMode = 'persistent' | 'memory'
+export type StorageMode = 'persistent' | 'memory' | 'demo'
 
 export interface CalorieRuntime {
   database: CalorieDatabase
@@ -11,12 +11,19 @@ export interface CalorieRuntime {
 
 interface RuntimeOptions {
   name?: string
+  forceMemory?: boolean
   createPersistentDatabase?: (name: string) => CalorieDatabase
 }
 
 export async function createCalorieRuntime(options: RuntimeOptions = {}): Promise<CalorieRuntime> {
   const name = options.name ?? 'kaloriteller'
   const createPersistentDatabase = options.createPersistentDatabase ?? ((databaseName) => new CalorieDatabase(databaseName))
+
+  if (options.forceMemory) {
+    const demoDatabase = await createDefaultMemoryDatabase(`${name}-demo-${crypto.randomUUID()}`)
+    await demoDatabase.open()
+    return makeRuntime(demoDatabase, 'demo')
+  }
 
   let persistentDatabase: CalorieDatabase | undefined
   try {

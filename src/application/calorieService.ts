@@ -21,6 +21,7 @@ import {
 import { isDay, isDefinition, isEntry } from '../domain/validation'
 import { CalorieDatabase } from '../persistence/database'
 import { PersistenceError } from './errors'
+import { isBackupEnvelope, makeBackup, type BackupEnvelope } from './dataExport'
 
 export type EntryMutationResult =
   | { status: 'added'; entry: Entry }
@@ -129,13 +130,25 @@ export class CalorieService {
     )
   }
 
-  async deleteEntry(entryId: string): Promise<void> {
-    await this.db.transaction('rw', this.db.days, this.db.entries, async () => {
+  async deleteEntry(entryId: string): Promise<Entry | null> {
+    return this.db.transaction('rw', this.db.days, this.db.entries, async () => {
       const entry = await this.db.entries.get(entryId)
-      if (!entry) return
+      if (!entry) return null
+      if (!isEntry(entry)) throw new PersistenceError()
       await this.db.entries.delete(entryId)
       const day = await this.db.days.get(entry.dayId)
       if (day) await this.db.days.update(day.id, { updatedAt: this.now().toISOString() })
+      return entry
+    })
+  }
+
+  async restoreEntry(entry: Entry): Promise<void> {
+    if (!isEntry(entry)) throw new DomainError('Innlegget kan ikke gjenopprettes.')
+    await this.db.transaction('rw', this.db.days, this.db.entries, async () => {
+      await this.requireDay(entry.dayId)
+      if (await this.db.entries.get(entry.id)) throw new DomainError('Innlegget finnes allerede.')
+      await this.db.entries.add(entry)
+      await this.db.days.update(entry.dayId, { updatedAt: this.now().toISOString() })
     })
   }
 
@@ -165,15 +178,106 @@ export class CalorieService {
     await this.db.transaction('rw', this.db.definitions, async (transaction) => {
       const existing = await this.db.definitions.get(id)
       if (!existing || !isDefinition(existing)) throw new DomainError('Definisjonen finnes ikke lenger.')
-      await this.assertDefinitionAvailable(cleanDraft, transaction, id)
+      await this.assertDefinitionAvailable(cleanDraft, transaction, [id])
       const timestamp = this.now().toISOString()
       const updated = makeDefinition(cleanDraft, id, existing.createdAt, timestamp)
       await this.db.definitions.put(updated)
     })
   }
 
-  async deleteDefinition(id: string): Promise<void> {
-    await this.db.definitions.delete(id)
+  async deleteDefinition(id: string): Promise<CalorieDefinition | null> {
+    return this.db.transaction('rw', this.db.definitions, async () => {
+      const definition = await this.db.definitions.get(id)
+      if (!definition) return null
+      if (!isDefinition(definition)) throw new PersistenceError()
+      await this.db.definitions.delete(id)
+      return definition
+    })
+  }
+
+  async restoreDefinition(definition: CalorieDefinition): Promise<void> {
+    if (!isDefinition(definition)) throw new DomainError('Definisjonen kan ikke gjenopprettes.')
+    await this.db.transaction('rw', this.db.definitions, async (transaction) => {
+      if (await this.db.definitions.get(definition.id)) throw new DomainError('Definisjonen finnes allerede.')
+      await this.assertDefinitionAvailable(definitionDraft(definition), transaction)
+      await this.db.definitions.add(definition)
+    })
+  }
+
+  async mergeCustomDefinitions(sourceId: string, targetId: string): Promise<void> {
+    if (sourceId === targetId) throw new DomainError('Velg to forskjellige definisjoner.')
+    await this.db.transaction('rw', this.db.definitions, async (transaction) => {
+      const [source, target] = await Promise.all([
+        this.db.definitions.get(sourceId),
+        this.db.definitions.get(targetId),
+      ])
+      if (!source || !target || !isDefinition(source) || !isDefinition(target)) {
+        throw new DomainError('En av definisjonene finnes ikke lenger.')
+      }
+      if (source.kind !== 'custom-count' || target.kind !== 'custom-count') {
+        throw new DomainError('Bare egendefinerte enheter kan slås sammen.')
+      }
+      const aliases = [target.canonicalLabel, ...target.aliases, source.canonicalLabel, ...source.aliases]
+      const cleanDraft = cleanDefinitionDraft({
+        basis: 'custom-count',
+        name: target.canonicalLabel,
+        caloriesPerUnit: target.caloriesPerUnit,
+        aliases,
+      })
+      await this.assertDefinitionAvailable(cleanDraft, transaction, [sourceId, targetId])
+      const updated = makeDefinition(cleanDraft, target.id, target.createdAt, this.now().toISOString())
+      await this.db.definitions.put(updated)
+      await this.db.definitions.delete(source.id)
+    })
+  }
+
+  async createBackup(): Promise<BackupEnvelope> {
+    const [days, entries, definitions] = await this.db.transaction(
+      'r',
+      this.db.days,
+      this.db.entries,
+      this.db.definitions,
+      () => Promise.all([
+        this.db.days.toArray(),
+        this.db.entries.toArray(),
+        this.db.definitions.toArray(),
+      ]),
+    )
+    const backup = makeBackup(days, entries, definitions, this.now().toISOString())
+    if (!isBackupEnvelope(backup)) throw new PersistenceError()
+    return backup
+  }
+
+  async replaceFromBackup(backup: BackupEnvelope): Promise<void> {
+    if (!isBackupEnvelope(backup)) throw new DomainError('Sikkerhetskopien er ugyldig.')
+    await this.db.transaction(
+      'rw',
+      this.db.days,
+      this.db.entries,
+      this.db.definitions,
+      async () => {
+        await this.db.entries.clear()
+        await this.db.days.clear()
+        await this.db.definitions.clear()
+        await this.db.definitions.bulkAdd(backup.definitions)
+        await this.db.days.bulkAdd(backup.days)
+        await this.db.entries.bulkAdd(backup.entries)
+      },
+    )
+  }
+
+  async clearAll(): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      this.db.days,
+      this.db.entries,
+      this.db.definitions,
+      async () => {
+        await this.db.entries.clear()
+        await this.db.days.clear()
+        await this.db.definitions.clear()
+      },
+    )
   }
 
   private async createDefinition(draft: DefinitionDraft, transaction: Transaction): Promise<CalorieDefinition> {
@@ -187,9 +291,10 @@ export class CalorieService {
   private async assertDefinitionAvailable(
     draft: DefinitionDraft,
     _transaction: Transaction,
-    ignoredId?: string,
+    ignoredIds: string[] = [],
   ): Promise<void> {
-    const definitions = (await this.db.definitions.toArray()).filter((definition) => definition.id !== ignoredId)
+    const ignored = new Set(ignoredIds)
+    const definitions = (await this.db.definitions.toArray()).filter((definition) => !ignored.has(definition.id))
     if (draft.basis !== 'custom-count') {
       const normalizedName = normalizeLabel(draft.name)
       const collision = definitions.some(
@@ -352,4 +457,20 @@ function definitionSort(left: CalorieDefinition, right: CalorieDefinition): numb
   const leftName = left.kind === 'measured' ? left.itemName : left.canonicalLabel
   const rightName = right.kind === 'measured' ? right.itemName : right.canonicalLabel
   return leftName.localeCompare(rightName, 'nb-NO')
+}
+
+function definitionDraft(definition: CalorieDefinition): DefinitionDraft {
+  return definition.kind === 'measured'
+    ? {
+        basis: definition.measure,
+        name: definition.itemName,
+        caloriesPerUnit: definition.caloriesPerBaseUnit,
+        aliases: [],
+      }
+    : {
+        basis: 'custom-count',
+        name: definition.canonicalLabel,
+        caloriesPerUnit: definition.caloriesPerUnit,
+        aliases: definition.aliases,
+      }
 }

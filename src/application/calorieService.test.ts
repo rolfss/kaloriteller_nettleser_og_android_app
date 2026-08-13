@@ -116,4 +116,59 @@ describe('calorie application service', () => {
     const reopened = new CalorieService(db)
     expect((await reopened.snapshot()).active?.totalCalories).toBe(900)
   })
+
+  it('restores recently deleted entries and definitions without changing snapshots', async () => {
+    const entry = await teach('1 kjeks', 'kjeks', 56)
+    const definition = (await service.snapshot()).definitions[0]
+    if (!definition) throw new Error('Expected definition')
+
+    const deletedEntry = await service.deleteEntry(entry.id)
+    expect((await service.snapshot()).active?.totalCalories).toBe(0)
+    if (!deletedEntry) throw new Error('Expected deleted entry')
+    await service.restoreEntry(deletedEntry)
+    expect((await service.snapshot()).active?.totalCalories).toBe(56)
+
+    const deletedDefinition = await service.deleteDefinition(definition.id)
+    expect((await service.snapshot()).definitions).toHaveLength(0)
+    if (!deletedDefinition) throw new Error('Expected deleted definition')
+    await service.restoreDefinition(deletedDefinition)
+    expect((await service.snapshot()).definitions).toEqual([definition])
+  })
+
+  it('exports, clears, and transactionally restores a complete backup', async () => {
+    await teach('2 flasker', 'flaske', 150, ['flasker'])
+    const backup = await service.createBackup()
+
+    await service.clearAll()
+    expect(await service.snapshot()).toEqual({ active: null, history: [], definitions: [] })
+
+    await service.replaceFromBackup(backup)
+    const restored = await service.snapshot()
+    expect(restored.active?.totalCalories).toBe(300)
+    expect(restored.definitions).toHaveLength(1)
+  })
+
+  it('explicitly merges custom labels while preserving the target rate and history', async () => {
+    const historical = await teach('1 kjeks', 'kjeks', 56, ['kjeksene'])
+    await service.completeActiveDay()
+    await teach('1 cookie', 'cookie', 60, ['cookies'])
+    const definitions = await service.snapshot().then((snapshot) => snapshot.definitions)
+    const source = definitions.find((definition) => definition.kind === 'custom-count' && definition.canonicalLabel === 'kjeks')
+    const target = definitions.find((definition) => definition.kind === 'custom-count' && definition.canonicalLabel === 'cookie')
+    if (!source || !target) throw new Error('Expected definitions')
+
+    await service.mergeCustomDefinitions(source.id, target.id)
+
+    expect(await service.addEntry('2 kjeks')).toMatchObject({
+      status: 'added', entry: { calculatedCalories: 120, definitionId: target.id },
+    })
+    const snapshot = await service.snapshot()
+    expect(snapshot.definitions).toHaveLength(1)
+    expect(snapshot.definitions[0]).toMatchObject({
+      kind: 'custom-count', canonicalLabel: 'cookie', caloriesPerUnit: 60,
+    })
+    expect(snapshot.history[0]?.entries[0]).toMatchObject({
+      id: historical.id, calculatedCalories: 56, definitionId: source.id,
+    })
+  })
 })

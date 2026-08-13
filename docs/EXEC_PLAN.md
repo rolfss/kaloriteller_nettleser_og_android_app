@@ -49,3 +49,17 @@ The repository initially contained only specifications, documentation, and `asse
 - GitHub Pages build — verified under `/kaloriteller_nettleser_og_android_app/` with correct manifest start URL/scope, working assets, and zero browser console errors.
 - 2026-08-13: Project moved to the repository root; recruiter-facing README, application preview, and quality-gated GitHub Pages deployment added.
 - 2026-08-13: Added automatic session-memory fallback for browsers where IndexedDB is unavailable or blocked, with an explicit storage-status notice and no file/install requirement.
+- 2026-08-13: Started the post-MVP usability package: explicit recruiter demo sessions, undoable deletion, retention warnings, portable local backup/import, CSV export, draft preservation, data/privacy controls, richer definition management, and Android test-package automation.
+
+## Post-MVP implementation slices
+
+- [x] Forceable `?demo=1` in-memory session with restart control and recruiter-facing link.
+- [x] Composer draft preserved across in-app navigation without sending data off-device.
+- [x] Ten-second undo for entry and definition deletion.
+- [x] Seven-day retention warning naming the day to be removed, with export-before-completion.
+- [x] Transactional versioned JSON backup/import and explicit clear-all operation.
+- [x] Safe local CSV export for active and retained days.
+- [x] Definition search, sorting, aliases, usage count, and last-used metadata.
+- [x] Data/privacy screen and example-driven first-use guidance.
+- [x] Automated coverage for memory/demo mode, backup boundaries, CSV, undo restore, and retention preview.
+- [x] GitHub workflow for a debug-signed Android test APK attached to a clearly labeled tagged prerelease; remote build remains to be exercised.

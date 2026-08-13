@@ -1,0 +1,70 @@
+name: Android test release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build installable debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.16.0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and synchronize application
+        run: |
+          pnpm build
+          pnpm cap:sync
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Prepare recruiter package
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk kaloriteller-android-test.apk
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaloriteller-android-test
+          path: kaloriteller-android-test.apk
+          if-no-files-found: error
+
+      - name: Attach APK to tagged GitHub prerelease
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" kaloriteller-android-test.apk \
+            --verify-tag \
+            --prerelease \
+            --latest=false \
+            --generate-notes \
+            --notes "Installable debug-signed recruiter test package. This is not a Play Store production build. Android may ask the evaluator to allow installation from the chosen download source. The app requests neither network nor broad storage permission."

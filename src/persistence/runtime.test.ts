@@ -39,4 +39,18 @@ describe('browser storage runtime', () => {
     })
     expect((await runtime.service.snapshot()).active?.totalCalories).toBe(56)
   })
+
+  it('starts an isolated demo without attempting persistent storage', async () => {
+    const createPersistentDatabase = vi.fn(() => new CalorieDatabase('should-not-open'))
+
+    runtime = await createCalorieRuntime({
+      name: `demo-${crypto.randomUUID()}`,
+      forceMemory: true,
+      createPersistentDatabase,
+    })
+
+    expect(runtime.storageMode).toBe('demo')
+    expect(createPersistentDatabase).not.toHaveBeenCalled()
+    expect((await runtime.service.snapshot()).active).toBeNull()
+  })
 })

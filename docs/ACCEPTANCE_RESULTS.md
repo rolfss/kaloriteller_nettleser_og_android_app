@@ -34,3 +34,15 @@ The source checklist is `ACCEPTANCE_TESTS.md`. Automated tests use fake IndexedD
 - Production UI states that no installation or project files are required and identifies the active storage behavior.
 - Production flow was repeated at 390 × 844: definition creation and entry calculation succeeded with zero console errors.
 - In-memory mode deliberately lasts only until reload/close; the warning says this explicitly and no blocked persistent data is deleted or overwritten.
+
+## Post-MVP verification — 2026-08-13
+
+- `?demo=1` was opened in a production build, confirmed as empty and isolated, used to define and add `2 kjeks = 112 kcal`, then reloaded and confirmed empty again.
+- Browser flow preserved `2 kjeks` while navigating to Data and privacy and back.
+- Entry deletion changed the total from 112 to 0; the visible ten-second undo restored the entry and 112 kcal total.
+- Definition management displayed search, three sort modes, usage count, and last-used date.
+- Data and privacy displayed JSON backup/import, CSV, clear-all confirmation, storage lifetime, and privacy facts.
+- Automated tests cover demo startup without persistent access, backup validation/round-trip, transactional clear/restore, entry/definition undo primitives, CSV formula neutralization, draft preservation, examples, retention preview, and clear-all confirmation.
+- Typecheck, lint, all 45 tests, and the production PWA build passed; 24 static resources are precached.
+- Android test-release workflow was added with Java 21, Capacitor sync, Gradle debug build, artifact upload, and tagged prerelease attachment. No remote APK result is claimed until that workflow is run successfully.
+- Local `pnpm cap:sync` passed with the updated production assets. Local `assembleDebug` was attempted again and stopped before compilation because this workstation still has no Java/`JAVA_HOME`; CI is configured to supply Java 21.

@@ -143,3 +143,43 @@
 **User-visible effect:** Normal browsers retain data locally. Restricted browsers remain fully usable until the page reloads or closes and clearly explain that the data is temporary.
 
 **Reversibility:** Easy; runtime storage selection is isolated from the domain and application service.
+
+## AD-010 — Explicit recruiter demo
+**Status:** accepted
+**Date:** 2026-08-13
+
+**Decision:** `?demo=1` bypasses persistent storage completely and creates a fresh in-memory database for each page load. The regular URL retains the existing persistent-first behavior.
+
+**Why:** A recruiter can evaluate the real product without installing it, writing project files, reading prior app data, or leaving evaluation data behind.
+
+**User-visible effect:** The demo is clearly labeled and resets on reload/close. A restart action is also available under Data and privacy.
+
+## AD-011 — Portable data boundary
+**Status:** accepted
+**Date:** 2026-08-13
+
+**Decision:** JSON backup is schema-versioned and validated as a complete replacement before a single transaction clears and restores the database. CSV cells are quoted and formula-like text is neutralized.
+
+**Why:** Learned definitions are valuable local data. A strict replacement boundary is easier to reason about than partial merge semantics and avoids silent duplicates or alias conflicts.
+
+**User-visible effect:** Users can back up or move their local state, export spreadsheet-friendly history, and explicitly clear all local data.
+
+## AD-012 — Recoverable deletion and explicit retention loss
+**Status:** accepted
+**Date:** 2026-08-13
+
+**Decision:** Entry and definition deletion offer a ten-second in-memory undo. Completing a day when seven completed days already exist names the oldest day and exposes history export before confirmation.
+
+**Why:** These operations are locally destructive. Short-lived undo is fast for ordinary mistakes; retention loss must be visible before it occurs.
+
+**User-visible effect:** Accidental deletion can be reversed immediately, while the fixed seven-day rule remains unchanged and transparent.
+
+## AD-013 — Android recruiter artifact
+**Status:** accepted
+**Date:** 2026-08-13
+
+**Decision:** Tags matching `v*` run a Java 21 Android build in GitHub Actions and attach a debug-signed APK to a prerelease explicitly labeled as a test package.
+
+**Why:** It provides an installable evaluation artifact without presenting a debug key as production signing or requiring the local workstation to have an Android SDK.
+
+**User-visible effect:** Recruiters may install a tagged test APK after accepting Android's external-source prompt. It is not represented as a Play Store release.

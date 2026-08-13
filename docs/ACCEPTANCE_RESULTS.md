@@ -44,5 +44,5 @@ The source checklist is `ACCEPTANCE_TESTS.md`. Automated tests use fake IndexedD
 - Data and privacy displayed JSON backup/import, CSV, clear-all confirmation, storage lifetime, and privacy facts.
 - Automated tests cover demo startup without persistent access, backup validation/round-trip, transactional clear/restore, entry/definition undo primitives, CSV formula neutralization, draft preservation, examples, retention preview, and clear-all confirmation.
 - Typecheck, lint, all 45 tests, and the production PWA build passed; 24 static resources are precached.
-- Android test-release workflow was added with Java 21, Capacitor sync, Gradle debug build, artifact upload, and tagged prerelease attachment. No remote APK result is claimed until that workflow is run successfully.
+- Android test-release workflow passed with Java 21, Capacitor sync, Gradle debug build, artifact upload, and tagged `v1.1.0` prerelease attachment. The resulting `kaloriteller-android-test.apk` is 4,655,645 bytes and is explicitly marked as a debug-signed test package.
 - Local `pnpm cap:sync` passed with the updated production assets. Local `assembleDebug` was attempted again and stopped before compilation because this workstation still has no Java/`JAVA_HOME`; CI is configured to supply Java 21.

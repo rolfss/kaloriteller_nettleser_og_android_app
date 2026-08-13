@@ -62,4 +62,4 @@ The repository initially contained only specifications, documentation, and `asse
 - [x] Definition search, sorting, aliases, usage count, and last-used metadata.
 - [x] Data/privacy screen and example-driven first-use guidance.
 - [x] Automated coverage for memory/demo mode, backup boundaries, CSV, undo restore, and retention preview.
-- [x] GitHub workflow for a debug-signed Android test APK attached to a clearly labeled tagged prerelease; remote build remains to be exercised.
+- [x] GitHub-built debug-signed Android test APK attached to the clearly labeled `v1.1.0` prerelease.

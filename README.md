@@ -38,6 +38,7 @@ The implementation demonstrates:
 | Export | Local PDF for one day or all retained days |
 | Privacy | On-device data, no account/backend/telemetry, no Android network permission |
 | Platforms | Chrome/PWA and Android through Capacitor |
+| Restricted computers | Automatic in-memory session if persistent browser storage is blocked |
 
 ## Architecture
 
@@ -54,6 +55,10 @@ IndexedDB — canonical local state
 ```
 
 The total is always derived from entry snapshots. Persistent state is read back after mutations instead of being duplicated in a large client-side store. See [ARCHITECTURE.md](./ARCHITECTURE.md), [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), and the [decision log](./docs/AGENT_DECISIONS.md).
+
+## Run without installation
+
+The [live application](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/) runs directly in the browser. It does not create project files or require an account. It normally uses versioned IndexedDB, which is internal browser storage rather than a user-created file. If a managed browser blocks IndexedDB, the same application automatically runs in memory until the page reloads or closes and clearly marks the data as temporary.
 
 ## Run locally
 

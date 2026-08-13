@@ -27,3 +27,10 @@ The source checklist is `ACCEPTANCE_TESTS.md`. Automated tests use fake IndexedD
 - Android manifest requests no network or storage permission.
 - Android debug build was attempted but could not start: the machine has no Java executable/`JAVA_HOME` or Android SDK.
 - The GitHub Pages production build was loaded from its repository subpath with the expected PWA manifest scope and no browser console errors.
+
+## Restricted-browser verification — 2026-08-13
+
+- Automated runtime test forces persistent database opening to fail, verifies automatic in-memory mode, then creates a definition and adds an entry successfully.
+- Production UI states that no installation or project files are required and identifies the active storage behavior.
+- Production flow was repeated at 390 × 844: definition creation and entry calculation succeeded with zero console errors.
+- In-memory mode deliberately lasts only until reload/close; the warning says this explicitly and no blocked persistent data is deleted or overwritten.

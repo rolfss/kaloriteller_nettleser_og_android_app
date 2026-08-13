@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie'
+import Dexie, { type DexieOptions, type EntityTable } from 'dexie'
 import type { CalorieDefinition, Day, Entry } from '../domain/models'
 
 export class CalorieDatabase extends Dexie {
@@ -6,8 +6,8 @@ export class CalorieDatabase extends Dexie {
   entries!: EntityTable<Entry, 'id'>
   definitions!: EntityTable<CalorieDefinition, 'id'>
 
-  constructor(name = 'kaloriteller') {
-    super(name)
+  constructor(name = 'kaloriteller', options?: DexieOptions) {
+    super(name, options)
     this.version(1).stores({
       days: '&id,status,logDate,completedAt',
       entries: '&id,dayId,createdAt',
@@ -15,5 +15,3 @@ export class CalorieDatabase extends Dexie {
     })
   }
 }
-
-export const database = new CalorieDatabase()

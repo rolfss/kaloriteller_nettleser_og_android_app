@@ -48,3 +48,4 @@ The repository initially contained only specifications, documentation, and `asse
 - Privacy scan — no application backend, analytics, food lookup, or food-data transmission code; Android manifest has no network/storage permission.
 - GitHub Pages build — verified under `/kaloriteller_nettleser_og_android_app/` with correct manifest start URL/scope, working assets, and zero browser console errors.
 - 2026-08-13: Project moved to the repository root; recruiter-facing README, application preview, and quality-gated GitHub Pages deployment added.
+- 2026-08-13: Added automatic session-memory fallback for browsers where IndexedDB is unavailable or blocked, with an explicit storage-status notice and no file/install requirement.

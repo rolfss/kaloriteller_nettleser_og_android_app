@@ -127,3 +127,19 @@
 **User-visible effect:** The GitHub landing page now leads with a live demo, product screenshot, capabilities, architecture, verification status, and direct technical links.
 
 **Reversibility:** Easy; hosting is static and the deployment workflow can be removed without changing the application.
+
+## AD-009 — Browser-memory fallback
+**Status:** accepted
+**Date:** 2026-08-13
+
+**Question:** How should the live demo behave on managed computers where persistent browser storage is disabled?
+
+**Decision:** Try the normal versioned IndexedDB database first. If it cannot be opened, leave it untouched and automatically start an equivalent in-memory database for the current page session. Show the active storage mode in the interface.
+
+**Why:** Recruiters can evaluate every core flow without installing the PWA, downloading files, or receiving permission to create custom project files. The warning prevents users from assuming temporary data will survive closing the tab.
+
+**Alternatives considered:** Stop the app with an error; require private browsing; replace persistent storage for every user with session-only React state.
+
+**User-visible effect:** Normal browsers retain data locally. Restricted browsers remain fully usable until the page reloads or closes and clearly explain that the data is temporary.
+
+**Reversibility:** Easy; runtime storage selection is isolated from the domain and application service.

@@ -19,7 +19,7 @@ import {
   matchDefinition,
 } from '../domain/rules'
 import { isDay, isDefinition, isEntry } from '../domain/validation'
-import { CalorieDatabase, database } from '../persistence/database'
+import { CalorieDatabase } from '../persistence/database'
 import { PersistenceError } from './errors'
 
 export type EntryMutationResult =
@@ -353,5 +353,3 @@ function definitionSort(left: CalorieDefinition, right: CalorieDefinition): numb
   const rightName = right.kind === 'measured' ? right.itemName : right.canonicalLabel
   return leftName.localeCompare(rightName, 'nb-NO')
 }
-
-export const calorieService = new CalorieService(database)

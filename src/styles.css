@@ -28,6 +28,8 @@ h1 { margin-bottom: 0; font-size: clamp(1.6rem, 5vw, 2.2rem); line-height: 1.1; 
 h2 { font-size: 1.05rem; }
 
 .app-shell { width: min(100%, 720px); min-height: 100vh; margin: 0 auto; background: var(--surface); box-shadow: var(--shadow); }
+.storage-notice { padding: 9px 20px; border-bottom: 1px solid #bfd5ca; color: #294c43; background: var(--green-light); font-size: .82rem; line-height: 1.45; text-align: center; }
+.storage-notice--temporary { border-bottom-color: #e5c178; color: #5f461e; background: #fff2d9; }
 .screen { min-height: 100vh; padding: max(22px, env(safe-area-inset-top)) 20px max(130px, calc(110px + env(safe-area-inset-bottom))); }
 .topbar, .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .topbar__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; justify-content: flex-end; }

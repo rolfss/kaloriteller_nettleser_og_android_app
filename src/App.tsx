@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { calorieService, type AppSnapshot } from './application/calorieService'
+import type { AppSnapshot } from './application/calorieService'
 import { DefinitionDialog } from './components/DefinitionDialog'
 import { EntryDialog } from './components/EntryDialog'
 import type { DefinitionDraft, Entry, PendingEntry } from './domain/models'
@@ -8,6 +8,7 @@ import { DefinitionsScreen } from './features/definitions/DefinitionsScreen'
 import { DayDetailScreen } from './features/history/DayDetailScreen'
 import { HistoryScreen } from './features/history/HistoryScreen'
 import { savePdf } from './platform/savePdf'
+import { createCalorieRuntime, type CalorieRuntime } from './persistence/runtime'
 
 type View = { name: 'current' | 'history' | 'definitions' } | { name: 'day'; dayId: string }
 
@@ -15,6 +16,7 @@ const emptySnapshot: AppSnapshot = { active: null, history: [], definitions: [] 
 
 export default function App() {
   const [snapshot, setSnapshot] = useState<AppSnapshot>(emptySnapshot)
+  const [runtime, setRuntime] = useState<CalorieRuntime | null>(null)
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<View>({ name: 'current' })
   const [pending, setPending] = useState<PendingEntry | null>(null)
@@ -26,21 +28,29 @@ export default function App() {
   const [notice, setNotice] = useState('')
 
   const refresh = useCallback(async () => {
+    if (!runtime) return
     try {
-      setSnapshot(await calorieService.snapshot())
+      setSnapshot(await runtime.service.snapshot())
       setFatalError('')
     } catch (error) {
       setFatalError(errorMessage(error))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [runtime])
 
   useEffect(() => {
     let cancelled = false
-    void calorieService.snapshot()
-      .then((data) => {
-        if (!cancelled) { setSnapshot(data); setFatalError('') }
+    void createCalorieRuntime()
+      .then(async (nextRuntime) => {
+        const data = await nextRuntime.service.snapshot()
+        if (!cancelled) {
+          setRuntime(nextRuntime)
+          setSnapshot(data)
+          setFatalError('')
+        } else {
+          nextRuntime.database.close()
+        }
       })
       .catch((error: unknown) => {
         if (!cancelled) setFatalError(errorMessage(error))
@@ -60,9 +70,10 @@ export default function App() {
   )
 
   const addEntry = async (rawText: string): Promise<boolean> => {
+    if (!runtime) return false
     setBusy(true); setFormError('')
     try {
-      const result = await calorieService.addEntry(rawText)
+      const result = await runtime.service.addEntry(rawText)
       if (result.status === 'needs-definition') {
         setPending(result.pending)
         return false
@@ -76,10 +87,10 @@ export default function App() {
   }
 
   const resolvePending = async (draft: DefinitionDraft) => {
-    if (!pending) return
+    if (!pending || !runtime) return
     setBusy(true); setFormError('')
     try {
-      await calorieService.resolvePending(pending, draft)
+      await runtime.service.resolvePending(pending, draft)
       setPending(null)
       await refresh()
       setNotice('Definisjonen er lagret, og innlegget er lagt til.')
@@ -87,10 +98,10 @@ export default function App() {
   }
 
   const editEntry = async (rawText: string) => {
-    if (!editing) return
+    if (!editing || !runtime) return
     setBusy(true); setFormError('')
     try {
-      const result = await calorieService.editEntry(editing.id, rawText)
+      const result = await runtime.service.editEntry(editing.id, rawText)
       setEditing(null)
       if (result.status === 'needs-definition') setPending(result.pending)
       else { await refresh(); setNotice('Innlegget er oppdatert.') }
@@ -98,10 +109,10 @@ export default function App() {
   }
 
   const deleteEntry = async () => {
-    if (!editing) return
+    if (!editing || !runtime) return
     setBusy(true)
     try {
-      await calorieService.deleteEntry(editing.id)
+      await runtime.service.deleteEntry(editing.id)
       setEditing(null)
       await refresh()
       setNotice('Innlegget er slettet.')
@@ -109,9 +120,10 @@ export default function App() {
   }
 
   const completeDay = async () => {
+    if (!runtime) return
     setBusy(true); setFormError('')
     try {
-      await calorieService.completeActiveDay()
+      await runtime.service.completeActiveDay()
       await refresh()
       setNotice('Dagen er avsluttet og lagt i historikken.')
     } catch (error) { setFormError(errorMessage(error)) } finally { setBusy(false) }
@@ -129,8 +141,18 @@ export default function App() {
 
   if (loading) return <main className="loading-state"><div className="spinner" /><p>Åpner den lokale kaloriloggen…</p></main>
 
+  if (!runtime) {
+    return (
+      <main className="loading-state">
+        <p role="alert">{fatalError || 'Kaloriloggen kunne ikke startes.'}</p>
+        <button type="button" className="button" onClick={() => window.location.reload()}>Prøv igjen</button>
+      </main>
+    )
+  }
+
   return (
     <div className="app-shell">
+      <StorageNotice mode={runtime.storageMode} />
       {fatalError && <div className="global-error" role="alert"><span>{fatalError}</span><button type="button" onClick={() => { setFatalError(''); void refresh() }}>Prøv igjen</button></div>}
       {view.name === 'current' && (
         <CurrentDayScreen
@@ -166,8 +188,8 @@ export default function App() {
         <DefinitionsScreen
           definitions={snapshot.definitions}
           onBack={() => setView({ name: 'current' })}
-          onUpdate={async (id, draft) => { await calorieService.updateDefinition(id, draft); await refresh(); setNotice('Definisjonen er oppdatert.') }}
-          onDelete={async (id) => { await calorieService.deleteDefinition(id); await refresh(); setNotice('Definisjonen er slettet.') }}
+          onUpdate={async (id, draft) => { await runtime.service.updateDefinition(id, draft); await refresh(); setNotice('Definisjonen er oppdatert.') }}
+          onDelete={async (id) => { await runtime.service.deleteDefinition(id); await refresh(); setNotice('Definisjonen er slettet.') }}
         />
       )}
       {pending && (
@@ -191,6 +213,21 @@ export default function App() {
       )}
       <div className="toast" aria-live="polite" aria-atomic="true">{notice}</div>
     </div>
+  )
+}
+
+function StorageNotice({ mode }: { mode: CalorieRuntime['storageMode'] }) {
+  if (mode === 'memory') {
+    return (
+      <aside className="storage-notice storage-notice--temporary" role="status">
+        <strong>Midlertidig økt.</strong> Nettleserlagring er blokkert. Data forsvinner når siden lastes på nytt eller fanen lukkes.
+      </aside>
+    )
+  }
+  return (
+    <aside className="storage-notice" role="status">
+      Ingen installasjon eller filer kreves. Data lagres bare i denne nettleseren.
+    </aside>
   )
 }
 

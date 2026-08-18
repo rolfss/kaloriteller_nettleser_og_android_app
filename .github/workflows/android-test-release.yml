@@ -47,7 +47,7 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Prepare recruiter package
+      - name: Prepare Android test package
         run: cp android/app/build/outputs/apk/debug/app-debug.apk kaloriteller-android-test.apk
 
       - name: Upload workflow artifact
@@ -67,4 +67,4 @@ jobs:
             --prerelease \
             --latest=false \
             --generate-notes \
-            --notes "Installable debug-signed recruiter test package. This is not a Play Store production build. Android may ask the evaluator to allow installation from the chosen download source. The app requests neither network nor broad storage permission."
+            --notes "Installable debug-signed Android test package. This is not a Play Store production build. Android may ask the user to allow installation from the chosen download source. The app requests neither network nor broad storage permission."

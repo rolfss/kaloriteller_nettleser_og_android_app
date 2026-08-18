@@ -1,7 +1,7 @@
 # Kaloriteller
 
 [![Live demo](https://img.shields.io/badge/Live_demo-Open_app-153f37?style=for-the-badge)](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/)
-[![Private recruiter demo](https://img.shields.io/badge/Recruiter_demo-Temporary_session-d85d39?style=for-the-badge)](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/?demo=1)
+[![Temporary demo](https://img.shields.io/badge/Temporary_demo-Fresh_session-d85d39?style=for-the-badge)](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/?demo=1)
 [![Quality and deploy](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/actions/workflows/quality-and-deploy.yml/badge.svg)](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/actions/workflows/quality-and-deploy.yml)
 [![PWA](https://img.shields.io/badge/PWA-offline_ready-5a8f7b)](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/)
 [![Android](https://img.shields.io/badge/Android-Capacitor-3DDC84?logo=android&logoColor=white)](./android)
@@ -9,17 +9,17 @@
 
 **A privacy-first calorie logger that learns only the calorie rules the user explicitly provides. No accounts, backend, analytics, external food database, or calorie guessing.**
 
-> [Try a private recruiter demo](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/?demo=1) — it runs entirely in memory and clears itself on reload or close.
+> [Open a temporary demo](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/?demo=1) — it runs entirely in memory and clears itself on reload or close.
 
 > [Try the application in your browser](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/) — it is installable and continues to work offline after the first load.
 
 ![Kaloriteller application preview](./docs/app-preview.png)
 
-## Why this project is interesting
+## Design approach
 
 Kaloriteller turns a deceptively small product idea into a carefully constrained local-first application. A user can enter `15 g tran`, `1,5 dl melk`, or `3 flasker`. If the required calorie rule is unknown, the application asks for an explicit definition and reuses it later. It never infers nutrition, density, unit conversions, or fuzzy matches.
 
-The implementation demonstrates:
+Key implementation details:
 
 - deterministic domain parsing separated from React and platform APIs;
 - versioned IndexedDB persistence behind a typed application-service boundary;
@@ -28,7 +28,7 @@ The implementation demonstrates:
 - explicit custom-unit aliases with collision prevention;
 - locally generated PDFs with browser and Android save/share adapters;
 - versioned JSON backup/import, safe CSV export, and explicit local-data deletion;
-- isolated recruiter demo sessions and automatic fallback when browser storage is blocked;
+- isolated temporary demo sessions and automatic fallback when browser storage is blocked;
 - undoable destructive edits and an export-first warning before seven-day retention removes a day;
 - an installable offline PWA and a shared Capacitor Android codebase;
 - strict TypeScript, runtime validation, accessibility, and behavior-focused tests.
@@ -46,7 +46,7 @@ The implementation demonstrates:
 | Privacy | On-device data, no account/backend/telemetry, no Android network permission |
 | Platforms | Chrome/PWA and Android through Capacitor |
 | Restricted computers | Automatic in-memory session if persistent browser storage is blocked |
-| Recruiter demo | `?demo=1` always uses a fresh, isolated in-memory session |
+| Temporary demo | `?demo=1` always uses a fresh, isolated in-memory session |
 | Portability | Transactional JSON backup/import plus local CSV and PDF export |
 | Safety | Ten-second undo and explicit warning before retention removes the oldest day |
 
@@ -70,7 +70,7 @@ The total is always derived from entry snapshots. Persistent state is read back 
 
 The [live application](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/) runs directly in the browser. It does not create project files or require an account. It normally uses versioned IndexedDB, which is internal browser storage rather than a user-created file. If a managed browser blocks IndexedDB, the same application automatically runs in memory until the page reloads or closes and clearly marks the data as temporary.
 
-For evaluation, use the dedicated [recruiter demo](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/?demo=1). It deliberately skips persistent storage even when available, never reads an evaluator's regular app data, and resets on reload.
+The dedicated [temporary demo](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/?demo=1) deliberately skips persistent storage even when available, never reads data from the regular app session, and resets on reload.
 
 ## Run locally
 
@@ -98,7 +98,7 @@ Detailed verification evidence is recorded in [docs/ACCEPTANCE_RESULTS.md](./doc
 
 ## Android
 
-**For evaluators:** [download the installable Android APK](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/releases/download/v1.1.0/kaloriteller-android-test.apk), or open the [live app](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/) in Chrome on Android and choose **Install app**. Both variants run locally, work offline, and store calorie data only on the device. The APK is a debug-signed test package, so Android may ask for permission to install from the browser.
+**Installation options:** [download the installable Android APK](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/releases/download/v1.1.0/kaloriteller-android-test.apk), or open the [live app](https://rolfss.github.io/kaloriteller_nettleser_og_android_app/) in Chrome on Android and choose **Install app**. Both variants run locally, work offline, and store calorie data only on the device. The APK is a debug-signed test package, so Android may ask for permission to install from the browser.
 
 ```bash
 pnpm build
@@ -116,7 +116,7 @@ cd android
 
 PDF export writes a temporary file to the app-private cache only after an explicit export action, opens Android's native share/save flow, and removes the temporary file afterward. The Android manifest requests neither network nor broad storage access.
 
-Tagged versions also build a debug-signed, installable recruiter APK in GitHub Actions and attach it to a clearly labeled prerelease. See [GitHub Releases](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/releases). This test package is not a Play Store production build.
+Tagged versions also build a debug-signed Android test APK in GitHub Actions and attach it to a clearly labeled prerelease. See [GitHub Releases](https://github.com/rolfss/kaloriteller_nettleser_og_android_app/releases). This test package is not a Play Store production build.
 
 ## Deployment
 
@@ -126,4 +126,4 @@ Tags matching `v*` additionally build the Android project with Java 21 and publi
 
 ---
 
-Built from a product brief with explicit acceptance criteria, architecture boundaries, decision records, and a full verification report—not as a UI-only prototype.
+Development was guided by a product brief with explicit acceptance criteria, architecture boundaries, decision records, and a full verification report.
